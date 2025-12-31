@@ -12,14 +12,27 @@
 		// $r = rand(0, count($feeds));
 		// $content = file_get_contents($feeds[0]);
 
+		$context = stream_context_create(
+			array(
+				"http" => array(
+					'method' 	=> 	"GET",
+					'header'	=>	"Accept-language: en\r\n" .
+              						"Cookie: foo=bar\r\n" .  // check function.stream-context-create on php.net
+              						"User-Agent: Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.102011-10-16 20:23:10\r\n" // i.e. An iPad 
+  )
+			)
+		);
+
 		$content = file_get_contents("https://rss.nytimes.com/services/xml/rss/nyt/World.xml");
 		
 		// Instantiate XML element
 		$xml = new SimpleXMLElement($content); 
 		$num = count($xml->channel->item) - 1;
-		$link = $xml->channel->item[rand(0, $num)]->link;
-		$html = file_get_contents($link);
 
+		$link = $xml->channel->item[rand(0, $num)]->link;
+		$html = file_get_contents($link, false, $context);
+
+		
 		$doc = new DOMDocument();
 		@$doc->loadHTML($html);
 		
@@ -40,7 +53,7 @@
 		$imageData = base64_encode(file_get_contents($image));
 
 		// Format the image SRC:  data:{mime};base64,{data};
-		// $src = 'data: '.mime_content_type($image).';base64,'.$imageData;
+		$src = 'data: '.mime_content_type($image).';base64,'.$imageData;
 		$src = 'data: image/*;base64,'.$imageData;
 		?>
 		
